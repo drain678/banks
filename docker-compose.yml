@@ -3,6 +3,9 @@ services:
     build:
       context: . 
     env_file: .env 
+    environment:
+      - DB_HOST=my-db 
+      - DB_PORT=5432
     ports: 
       - 8042:8000 
   my-db: 
@@ -12,6 +15,6 @@ services:
     volumes: 
       - ./db_data:/var/lib/postgres 
     environment: 
-      - POSTGRES_USER=postgres 
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=banks 
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}

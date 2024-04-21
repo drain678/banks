@@ -1,1 +1,1 @@
-![ER схема](images/er_diagarm.png)
+![ER схема](images/er_diagram.png)

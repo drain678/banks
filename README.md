@@ -1,0 +1,1 @@
+![ER схема](images/er_diagarm.png)

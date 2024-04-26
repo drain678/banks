@@ -3,7 +3,7 @@ from django.db import models
 
 class Bank(models.Model):
     title = models.CharField(max_length=200)
-    foundation_date = models.DateTimeField()
+    foundation_date = models.DateField()
 
 
 class Client(models.Model):
@@ -14,8 +14,14 @@ class Client(models.Model):
 
 
 class Transaction(models.Model):
+    initializer = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name='initializer')
     amount = models.DecimalField(decimal_places=2, max_digits=30)
-    date = models.DateTimeField()
+    transaction_date = models.DateField()
     description = models.CharField(max_length=1000)
     sender = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name='sent_transactions')
     receiver = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name='received_transactions')
+
+
+class Bank_account(models.Model):
+    balance = models.DecimalField(decimal_places=2, max_digits=40)
+    client = models.OneToOneField(Client, on_delete=models.CASCADE)

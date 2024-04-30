@@ -1,11 +1,35 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from uuid import uuid4
+from django.core.validators import MaxLengthValidator, MinLengthValidator, RegexValidator, MaxValueValidator, MinValueValidator
+from django.db import models
+from django.core.exceptions import ValidationError
+from datetime import datetime
+from django.utils import timezone
+
+
+def get_datetime() -> datetime:
+    return timezone.now().date()
+
+
+def check_created(dt: datetime) -> None:
+    if dt > timezone.now().date():
+        raise ValidationError(
+            _('Date and time is bigger than current!'),
+            params={'created': dt}
+        )
 
 
 class Bank(models.Model):
-    title = models.CharField(max_length=200)
-    foundation_date = models.DateField()
+    title = models.CharField(
+        max_length=100,
+        validators=[
+            MaxLengthValidator(100, message='Length title must be less than 100 symbols'),
+            MinLengthValidator(1, message='Length title must be more than 0 symbol')
+        ],
+        unique=True,
+    )
+    foundation_date = models.DateField(default=get_datetime(), validators=[check_created])
 
     class Meta:
         db_table = '"banks"."bank"'
@@ -14,13 +38,27 @@ class Bank(models.Model):
         verbose_name_plural = _('banks')
 
     def __str__(self) -> str:
-        return f'"{self.title}", foundation_date: {self.foundation_date}'
+        return f'Bank: "{self.title}", foundation_date: {self.foundation_date}'
 
 
 class Client(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    phone = models.CharField(max_length=20)
+    first_name = models.CharField(
+        max_length=70,
+        validators=[
+            MaxLengthValidator(70, message='Length first_name must be less than 70 symbols'),
+            MinLengthValidator(1, message='Length first_name must be more than 0 symbol')
+        ],
+    )
+    last_name = models.CharField(
+        max_length=100,
+        validators=[
+            MaxLengthValidator(100, message='Length last_name must be less than 100 symbols'),
+            MinLengthValidator(1, message='Length last_name must be more than 0 symbol')
+        ],
+    )
+    phone_regex = RegexValidator(regex=r'^\d{10}$', message='Phone number must be 10 digits.')
+    phone = models.CharField(max_length=10, validators=[phone_regex])
+    
     banks = models.ManyToManyField(Bank)
 
     class Meta:
@@ -30,14 +68,12 @@ class Client(models.Model):
         verbose_name_plural = _('clients')
 
     def __str__(self) -> str:
-        return f'{self.first_name} {self.last_name} {self.phone}'
+        return f'Client: {self.first_name} {self.last_name}, phone: {self.phone}'
     
 
 class BankClient(models.Model):
-    bank = models.ForeignKey(Bank, verbose_name=_(
-        'bank'), on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, verbose_name=_(
-        'client'), on_delete=models.CASCADE)
+    bank = models.ForeignKey(Bank, verbose_name=_('bank'), on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, verbose_name=_('client'), on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return f'{self.bank} - {self.client}'
@@ -53,7 +89,7 @@ class BankClient(models.Model):
 
 class BankAccount(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    balance = models.DecimalField(decimal_places=2, max_digits=40)
+    balance = models.DecimalField(decimal_places=2, max_digits=40, validators=[MaxValueValidator(1000000000), MinValueValidator(0)])
     client = models.OneToOneField(Client, on_delete=models.CASCADE)
 
     class Meta:
@@ -63,7 +99,7 @@ class BankAccount(models.Model):
         verbose_name_plural = _('bank_accounts')
 
     def __str__(self) -> str:
-        return f'{self.balance} {self.client}'
+        return f'Bank_account: {self.id}, balance: {self.balance}'
 
 
 class BankAccountClient(models.Model):
@@ -71,7 +107,7 @@ class BankAccountClient(models.Model):
     client = models.ForeignKey(Client, verbose_name=_('client'), on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return f'{self.bank_account} - {self.client}'
+        return f'{self.client} - {self.bank_account}'
 
     class Meta:
         db_table = '"banks"."bank_account_client"'
@@ -84,9 +120,16 @@ class BankAccountClient(models.Model):
 
 class Transaction(models.Model):
     initializer = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name='initializer')
-    amount = models.DecimalField(decimal_places=2, max_digits=30)
-    transaction_date = models.DateField()
-    description = models.CharField(max_length=1000)
+    amount = models.FloatField(validators=[MinValueValidator(0.01), MaxValueValidator(10000000000000000000)])
+    transaction_date = models.DateField(default=get_datetime(), validators=[check_created])
+    description = models.CharField(
+        null=True,
+        blank=True,
+        max_length=500,
+        validators=[
+            MaxLengthValidator(500, message='Length description must be less than 500 symbols'),
+        ],
+    )
     from_bank_account_id = models.ForeignKey(BankAccount, on_delete=models.CASCADE, related_name='sent_transactions')
     to_bank_account_id = models.ForeignKey(BankAccount, on_delete=models.CASCADE, related_name='received_transactions')
 
@@ -104,7 +147,7 @@ class Transaction(models.Model):
         verbose_name_plural = _('transactions')
 
     def __str__(self) -> str:
-        return f'Initializer: {self.initializer}, {self.description}, from: {self.from_bank_account_id}, to: {self.to_bank_account_id}'
+        return f'Initializer: {self.initializer}, description: {self.description}, from: {self.from_bank_account_id}, to: {self.to_bank_account_id}'
 
 
 class TransactionClient(models.Model):
@@ -112,7 +155,7 @@ class TransactionClient(models.Model):
     transaction = models.ForeignKey(Transaction, verbose_name=_('client'), on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return f'{self.transaction} - {self.client}'
+        return f'Transaction: {self.transaction} - {self.client}'
 
     class Meta:
         db_table = '"banks"."transaction_client"'

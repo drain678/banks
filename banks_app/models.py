@@ -56,7 +56,7 @@ class Client(models.Model):
             MinLengthValidator(1, message='Length last_name must be more than 0 symbol')
         ],
     )
-    phone_regex = RegexValidator(regex=r'^\d{10}$', message='Phone number must be 10 digits.')
+    phone_regex = RegexValidator(regex=r'^\+7\d{10}$', message='Phone number must be 10 digits in total.')
     phone = models.CharField(max_length=10, validators=[phone_regex])
     
     banks = models.ManyToManyField(Bank)
@@ -120,7 +120,7 @@ class BankAccountClient(models.Model):
 
 class Transaction(models.Model):
     initializer = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name='initializer')
-    amount = models.FloatField(validators=[MinValueValidator(0.01), MaxValueValidator(10000000000000000000)])
+    amount = models.FloatField(validators=[MinValueValidator(0.01)])
     transaction_date = models.DateField(default=get_datetime(), validators=[check_created])
     description = models.CharField(
         null=True,

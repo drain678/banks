@@ -44,4 +44,3 @@ class TransactionAdmin(admin.ModelAdmin):
     inline = (TransactionClientInline,)
     list_display = ('initializer', 'amount', 'transaction_date',
                     'description', 'from_bank_account_id', 'to_bank_account_id')
-    

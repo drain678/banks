@@ -6,7 +6,8 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from django.utils import timezone
-# from django.contrib.auth.models import User
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 
 
 
@@ -41,10 +42,10 @@ class Bank(UUIDMixin):
         unique=True,
     )
     foundation_date = models.DateField(
-        default=get_datetime(), validators=[check_created])
+        default=get_datetime, validators=[check_created])
     clients = models.ManyToManyField('Client', through='BankClient', verbose_name=_(
         'clients'))
-
+    
     class Meta:
         db_table = '"banks"."bank"'
         verbose_name = _('bank')
@@ -55,7 +56,7 @@ class Bank(UUIDMixin):
 
 
 class Client(UUIDMixin):
-    # user = models.OneToOneField(User, verbose_name=_('user'), on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(
         max_length=70,
         validators=[
@@ -110,7 +111,7 @@ class BankClient(UUIDMixin):
 
 class BankAccount(UUIDMixin):
     balance = models.DecimalField(decimal_places=2, max_digits=40, validators=[MinValueValidator(0)])
-    client = models.OneToOneField(Client, on_delete=models.CASCADE)
+    client = models.OneToOneField(BankClient, on_delete=models.CASCADE)
 
     class Meta:
         db_table = '"banks"."bank_account"'
@@ -144,7 +145,7 @@ class Transaction(UUIDMixin):
         Client, on_delete=models.RESTRICT, related_name='initializer')
     amount = models.FloatField(validators=[MinValueValidator(0.01)])
     transaction_date = models.DateField(
-        default=get_datetime(), validators=[check_created])
+        default=get_datetime, validators=[check_created])
     description = models.CharField(
         null=True,
         blank=True,

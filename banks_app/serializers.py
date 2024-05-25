@@ -11,8 +11,17 @@ class BankSerializer(serializers.HyperlinkedModelSerializer):
 class ClientSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Client
-        fields = '__all__'
-
+        exclude = ['user'] # TODO: add user to GET responses 
+        
+    
+    def create(self, validated_data):
+      user = self.context['request'].user
+      client = Client.objects.create(
+         user=user,
+         **validated_data
+      )
+      return client
+    
 
 class BankAccountSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'banks.wsgi.application'
 DATABASES = {
     'default': {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv('POSTGRES_NAME'),
+        "NAME": os.getenv('POSTGRES_DB'),
         "USER": os.getenv('POSTGRES_USER'),
         "PASSWORD": os.getenv('POSTGRES_PASSWORD'),
         "HOST": os.getenv('POSTGRES_HOST'),
@@ -142,3 +142,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
+
+
+TEST_RUNNER = 'tests.runner.PostgresSchemaRunner'

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from uuid import uuid4
@@ -110,8 +111,10 @@ class BankClient(UUIDMixin):
 
 
 class BankAccount(UUIDMixin):
-    balance = models.DecimalField(decimal_places=2, max_digits=40, validators=[MinValueValidator(0)])
-    client = models.OneToOneField(BankClient, on_delete=models.CASCADE)
+    balance = models.DecimalField(decimal_places=2, max_digits=40, validators=[MinValueValidator(Decimal('0.00'))])
+    # bank_and_client = models.OneToOneField(BankClient, on_delete=models.CASCADE)
+    bank = models.ForeignKey(Bank, verbose_name=_('bank'), on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, verbose_name=_('client'), on_delete=models.CASCADE)
 
     class Meta:
         db_table = '"banks"."bank_account"'
@@ -119,33 +122,31 @@ class BankAccount(UUIDMixin):
         verbose_name_plural = _('bank_accounts')
 
     def __str__(self) -> str:
-        return f'Bank_account: {self.client.first_name}, balance: {self.balance}'
+        return f'Bank_account: {self.id}, balance: {self.balance}'
 
 
-class BankAccountClient(UUIDMixin):
-    bank_account = models.ForeignKey(BankAccount, verbose_name=_(
-        'bank_account'), on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, verbose_name=_(
-        'client'), on_delete=models.CASCADE)
+# class BankAccountClient(UUIDMixin):
+#     bank_account = models.ForeignKey(BankAccount, verbose_name=_(
+#         'bank_account'), on_delete=models.CASCADE)
+#     client = models.ForeignKey(Client, verbose_name=_(
+#         'client'), on_delete=models.CASCADE)
 
-    def __str__(self) -> str:
-        return f'{self.client} - {self.bank_account}'
+#     def __str__(self) -> str:
+#         return f'{self.client} - {self.bank_account}'
 
-    class Meta:
-        db_table = '"banks"."bank_account_client"'
-        unique_together = (
-            ('bank_account', 'client'),
-        )
-        verbose_name = _('relationship bank_account client')
-        verbose_name_plural = _('relationships bank_account client')
+#     class Meta:
+#         db_table = '"banks"."bank_account_client"'
+#         unique_together = (
+#             ('bank_account', 'client'),
+#         )
+#         verbose_name = _('relationship bank_account client')
+#         verbose_name_plural = _('relationships bank_account client')
 
 
 class Transaction(UUIDMixin):
-    initializer = models.ForeignKey(
-        Client, on_delete=models.RESTRICT, related_name='initializer')
-    amount = models.FloatField(validators=[MinValueValidator(0.01)])
-    transaction_date = models.DateField(
-        default=get_datetime, validators=[check_created])
+    initializer = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name='initializer')
+    amount = models.DecimalField(decimal_places=2, max_digits=15, validators=[MinValueValidator(Decimal('0.00'))])
+    transaction_date = models.DateField(default=get_datetime, validators=[check_created])
     description = models.CharField(
         null=True,
         blank=True,
@@ -155,10 +156,8 @@ class Transaction(UUIDMixin):
                 500, message='Length description must be less than 500 symbols'),
         ],
     )
-    from_bank_account_id = models.ForeignKey(
-        BankAccount, on_delete=models.CASCADE, related_name='sent_transactions')
-    to_bank_account_id = models.ForeignKey(
-        BankAccount, on_delete=models.CASCADE, related_name='received_transactions')
+    from_bank_account_id = models.ForeignKey(BankAccount, on_delete=models.CASCADE, related_name='sent_transactions')
+    to_bank_account_id = models.ForeignKey(BankAccount, on_delete=models.CASCADE, related_name='received_transactions')
 
     class Meta:
         db_table = '"banks"."transaction"'

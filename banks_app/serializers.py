@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Bank, Client, BankAccount, Transaction
+from .models import Bank, BankClient, Client, BankAccount, Transaction
 
 
 class BankSerializer(serializers.HyperlinkedModelSerializer):
@@ -26,6 +26,12 @@ class ClientSerializer(serializers.HyperlinkedModelSerializer):
 class BankAccountSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = BankAccount
+        fields = '__all__'
+
+
+class BankClientSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = BankClient
         fields = '__all__'
 
 

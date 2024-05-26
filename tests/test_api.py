@@ -1,3 +1,4 @@
+from decimal import Decimal
 import json
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -5,138 +6,361 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from django.utils import timezone
+from config import CLIENT_BUSIK, CLIENT_STESHA, METOD_NOT_ALLOWED, FORBIDDEN, BAD_REQUEST, OK, CREATED, NO_CONTENT, TEST_TITLE
 
-from banks_app.models import Bank, Client, BankAccount, Transaction
+from banks_app.models import Bank, BankClient, Client, BankAccount, Transaction
 
-class BanksAPITest(TestCase): 
-        def setUp(self): 
-            self.api_client = APIClient() 
-                        # users
-            self.user = User.objects.create_user(username='user', password='user')
-            # self.user.save() 
-            self.superuser = User.objects.create_superuser(username='admin', password='admin', is_superuser=True)
-            # self.superuser.save() 
-            # tokens for users
-            self.user_token = Token.objects.create(user=self.user)
-            self.superuser_token = Token.objects.create(user=self.superuser)
-
-        def test_bank_403(self): 
-            self.api_client.force_authenticate(user=self.user, token=self.user_token)
-            response = self.api_client.post('/api/bank/', {'title': 'Test'})
-            self.assertEqual(response.status_code, 403) 
-
-        def test_bank_creation_duplicate_title(self): 
-            Bank.objects.create(title='Hello')
-            self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
-            body = {'title': 'Hello'}
-            response = self.api_client.post('/api/bank/', body)
-            self.assertEqual(response.status_code, 400)
-
-        def test_bank_creation(self): 
-            self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
-            TEST_TITLE = 'Sigma'
-            body = {'title': TEST_TITLE} 
-            response = self.api_client.post('/api/bank/', body)
-            self.assertEqual(response.status_code, 201) 
-            resp_body = json.loads(response.content.decode())
-            url = resp_body['url'].removeprefix('http://testserver')
-            id = url.removeprefix('/api/bank/').removesuffix('/')
-            # print(response.content) 
-            response = self.api_client.get(url)
-            self.assertEqual(response.status_code, 200) 
-            resp_body = json.loads(response.content.decode())
-            self.assertEqual(resp_body['title'], TEST_TITLE) 
-
-            # client = Client.objects.filter(id=id).first() 
-            # self.assertEqual(client.user, self.superuser) 
-            # print(bank) 
-
-            response = self.api_client.get('/api/bank/')
-            self.assertEqual(response.status_code, 200)
-            resp_body = json.loads(response.content.decode())
-            for b in resp_body:  # TODO: use django test framework method for testing lists 
-                 if b['title'] == TEST_TITLE: 
-                    return  
-            raise Exception(f'bank was not found in /api/bank/, response: {resp_body}')
-
-
-
-# def create_api_test(model_class, url, creation_attrs):
-#     class ApiTest(TestCase):
-#         def setUp(self):
-#             self.client = APIClient()
+# class BanksAPITest(TestCase): 
+#         def setUp(self): 
+#             self.api_client = APIClient() 
 #             # users
 #             self.user = User.objects.create_user(username='user', password='user')
 #             self.superuser = User.objects.create_superuser(username='admin', password='admin', is_superuser=True)
 #             # tokens for users
 #             self.user_token = Token.objects.create(user=self.user)
 #             self.superuser_token = Token.objects.create(user=self.superuser)
+        
+#         def test_bank_creation(self):
+#             # проверка статус кода на создание банка
+#             self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#             body = {'title': TEST_TITLE}
+#             response = self.api_client.post('/api/bank/', body)
+#             self.assertEqual(response.status_code, CREATED)
 
-#         def api_methods(
-#                 self, user: User, token: Token,
-#                 post_exp: int, put_exp: int, delete_exp: int,
-#         ):
-#             self.client.force_authenticate(user=user, token=token)
+#             # проверка на то, что банк действительно создался
+#             resp_body = json.loads(response.content.decode())
+#             url = resp_body['url'].removeprefix('http://testserver')
+#             id = url.removeprefix('/api/bank/').removesuffix('/')
+#             response = self.api_client.get(url)
+#             self.assertEqual(response.status_code, OK)
 
-#             # create model object
-#             self.created_id = model_class.objects.create(**creation_attrs).id
+#             # проверка получения банка обычного пользователя
+#             self.api_client.force_authenticate(user=self.user, token=self.user_token)
+#             response = self.api_client.get(url)
+#             self.assertEqual(response.status_code, OK)
 
-#             instance_url = f'{url}{self.created_id}/'
-#             print(instance_url)
-#             # GET all
-#             self.assertEqual(self.client.get(
-#                 url).status_code, status.HTTP_200_OK)
+#             # проверка заголовков
+#             self.assertEqual(self.api_client.head(url).status_code, OK)
 
-#             # # HEAD all
-#             # self.assertEqual(self.client.head(
-#             #     url).status_code, status.HTTP_200_OK)
+#             # проверка на то, что у банка правильное название
+#             resp_body = json.loads(response.content.decode())
+#             self.assertEqual(resp_body['title'], TEST_TITLE)
 
-#             # # OPTIONS all
-#             # self.assertEqual(self.client.get(
-#             #     url).status_code, status.HTTP_200_OK)
-
-#             # GET instance
-#             self.assertEqual(self.client.get(
-#                 instance_url).status_code, status.HTTP_200_OK)
-
-#             # # OPTIONS instance
-#             # self.assertEqual(self.client.get(
-#             #     instance_url).status_code, status.HTTP_200_OK)
-
-#             # POST
-#             self.assertEqual(self.client.post(
-#                 url, creation_attrs).status_code, post_exp)
-
-#             # PUT
-#             self.assertEqual(self.client.put(
-#                 instance_url, creation_attrs).status_code, put_exp)
-
-#             # DELETE
-#             self.assertEqual(self.client.delete(
-#                 instance_url).status_code, delete_exp)
-
-#         def test_superuser(self):
-#             self.api_methods(
-#                 self.superuser, self.superuser_token,
-#                 status.HTTP_201_CREATED, status.HTTP_200_OK, status.HTTP_204_NO_CONTENT
-#             )
-
-#         # def test_user(self):
-#         #     self.api_methods(
-#         #         self.user, self.user_token,
-#         #         status.HTTP_403_FORBIDDEN, status.HTTP_403_FORBIDDEN, status.HTTP_403_FORBIDDEN
-#         #     )
-
-#     return ApiTest
+#             # проверка на то, что этот банк среди других банков
+#             response = self.api_client.get('/api/bank/')
+#             self.assertEqual(response.status_code, OK)
+#             resp_body = json.loads(response.content.decode())
+#             bank_titles = [b['title'] for b in resp_body]
+#             self.assertIn(TEST_TITLE, bank_titles, f'bank was not found in /api/bank/, response: {resp_body}')
 
 
-# BankApiTest = create_api_test(
-#     Bank, '/api/bank/', {'title': 'Russia'}
-# )
-# BankAccountApiTest = create_api_test(BankAccount, '/api/bank_account/', {'balance': 100.0, 'client': Client})
-# ClientApiTest = create_api_test(Client, '/api/client/', {'user': User, 'first_name': 'Katya', 'last_name': 'Meow', 'phone': +79195138803})
-#TransactionApiTest = create_api_test(
-#     Transaction, '/api/transaction/',
-#     {'initializer': Client, 'amount': 200.0, 'transaction_date': timezone.now().date(),
-#     'description': 'obed', 'from_bank_account_id': BankAccount, 'to_bank_account_id': BankAccount}
-#  )
+
+#         def test_bank_403(self): 
+#             self.api_client.force_authenticate(user=self.user, token=self.user_token)
+#             response = self.api_client.post('/api/bank/', {'title': TEST_TITLE})
+#             self.assertEqual(response.status_code, FORBIDDEN) 
+
+
+#         def test_bank_creation_duplicate_title(self): 
+#             Bank.objects.create(title=TEST_TITLE)
+#             self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#             body = {'title': TEST_TITLE}
+#             response = self.api_client.post('/api/bank/', body)
+#             self.assertEqual(response.status_code, BAD_REQUEST)
+
+
+#         def test_bank_delete(self):
+#             self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#             body = {'title': TEST_TITLE}
+#             response = self.api_client.post('/api/bank/', body)
+#             self.assertEqual(response.status_code, CREATED)
+#             resp_body = json.loads(response.content.decode())
+#             url = resp_body['url'].removeprefix('http://testserver')
+#             response = self.api_client.delete(url)
+#             self.assertEqual(response.status_code, NO_CONTENT)
+
+
+#         def test_bank_update(self):
+#             self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#             body = {'title': TEST_TITLE}
+#             response = self.api_client.post('/api/bank/', body)
+#             self.assertEqual(response.status_code, CREATED)
+#             resp_body = json.loads(response.content.decode())
+#             resp_body['title'] = 'Banka_ogurcov'
+#             url = resp_body['url'].removeprefix('http://testserver')
+#             response = self.api_client.put(url, resp_body)
+#             self.assertEqual(response.status_code, OK)
+        
+
+# class ClientsAPITest(TestCase):
+#     def setUp(self):
+#         self.api_client = APIClient()
+#         # users
+#         self.user = User.objects.create_user(username='user', password='user')
+#         self.superuser = User.objects.create_superuser(username='admin', password='admin', is_superuser=True)
+#         # tokens for users
+#         self.user_token = Token.objects.create(user=self.user)
+#         self.superuser_token = Token.objects.create(user=self.superuser)
+
+#     def test_client_creation(self):
+#         # проверка созданния супер пользователя
+#         self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#         body = CLIENT_BUSIK
+#         response = self.api_client.post('/api/client/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         # проверка получения супер пользователя
+#         resp_body = json.loads(response.content.decode())
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         id = url.removeprefix('/api/client/').removesuffix('/')
+#         client = Client.objects.filter(id=id).first()
+#         self.assertEqual(client.user, self.superuser)
+#         # проверка создания обычного пользователя
+#         self.api_client.force_authenticate(user=self.user, token=self.user_token)
+#         body = CLIENT_STESHA
+#         response = self.api_client.post('/api/client/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         # проверка получения обычного пользователя
+#         resp_body = json.loads(response.content.decode())
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         id = url.removeprefix('/api/client/').removesuffix('/')
+#         client = Client.objects.filter(id=id).first()
+#         self.assertEqual(client.user, self.user)
+#         # проверка заголовков
+#         self.assertEqual(self.api_client.head(url).status_code, OK)
+
+#     def test_client_delete(self):
+#         # проверка удаления от супер пользователя
+#         self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#         body = CLIENT_BUSIK
+#         response = self.api_client.post('/api/client/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         resp_body = json.loads(response.content.decode())
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         response = self.api_client.delete(url)
+#         self.assertEqual(response.status_code, METOD_NOT_ALLOWED)
+#         # проверка удаления от обычного пользователя
+#         self.api_client.force_authenticate(user=self.user, token=self.user_token)
+#         body = CLIENT_STESHA
+#         response = self.api_client.post('/api/client/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         resp_body = json.loads(response.content.decode())
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         response = self.api_client.delete(url)
+#         self.assertEqual(response.status_code, METOD_NOT_ALLOWED)
+
+#     def test_client_update(self):
+#         # проверка обновления супер пользователя
+#         self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#         body = CLIENT_BUSIK
+#         response = self.api_client.post('/api/client/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         resp_body = json.loads(response.content.decode())
+#         resp_body['first_name'] = 'Pusik'
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         response = self.api_client.put(url, resp_body)
+#         self.assertEqual(response.status_code, OK)
+#         # проверка обновления обычного пользователя
+#         self.api_client.force_authenticate(user=self.user, token=self.user_token)
+#         body = CLIENT_STESHA
+#         response = self.api_client.post('/api/client/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         resp_body = json.loads(response.content.decode())
+#         resp_body['first_name'] = 'Steshik'
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         response = self.api_client.put(url, resp_body)
+#         self.assertEqual(response.status_code, OK)
+
+
+# class BankAccountAPITest(TestCase):
+#     def setUp(self):
+#         self.api_client = APIClient()
+#         # users
+#         self.user = User.objects.create_user(username='user', password='user')
+#         self.superuser = User.objects.create_superuser(username='admin', password='admin', is_superuser=True)
+#         # tokens for users
+#         self.user_token = Token.objects.create(user=self.user)
+#         self.superuser_token = Token.objects.create(user=self.superuser)
+#         # creating bank
+#         self.bank = Bank.objects.create(title=TEST_TITLE, foundation_date=timezone.now().date())
+#         # creating client
+#         self.client_instance = Client.objects.create(user=self.user, first_name='Test', last_name='Testovich', phone='+79000000000')
+        
+#     def test_bank_account_creation(self):
+#         # проверка создания банковского счёта суперпользователем
+#         self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#         body = {'balance': 1000.00, 'bank': f'/api/bank/{self.bank.id}/', 'client': f'/api/client/{self.client_instance.id}/'}
+#         response = self.api_client.post('/api/bank_account/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         # проверка получения созданного банковского счёта суперпользователем
+#         resp_body = json.loads(response.content.decode())
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         response = self.api_client.get(url)
+#         self.assertEqual(response.status_code, OK)
+#         # проверка на зачисление верной суммы
+#         bank_account_id = url.removeprefix('/api/bank_account/').removesuffix('/')
+#         bank_account = BankAccount.objects.get(id=bank_account_id)
+#         self.assertEqual(bank_account.balance, 1000.00)
+#         # проверка заголовков
+#         self.assertEqual(self.api_client.head(url).status_code, OK)
+#         # проверка получения созданного банковского счёта обычным пользователем
+#         self.api_client.force_authenticate(user=self.user, token=self.user_token)
+#         response = self.api_client.get(url)
+#         self.assertEqual(response.status_code, OK)
+
+#     def test_bank_account_update(self):
+#         # обновленние банковского счёта суперпользователем
+#         self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#         body = {'balance': '1000.00', 'bank': f'/api/bank/{self.bank.id}/','client': f'/api/client/{self.client_instance.id}/'}
+#         response = self.api_client.post('/api/bank_account/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         resp_body = json.loads(response.content.decode())
+#         resp_body['balance'] = '2000.0'
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         response = self.api_client.put(url, resp_body)
+#         self.assertEqual(response.status_code, OK)
+#         # проверка обновления банковского счёта
+#         bank_account_id = url.removeprefix('/api/bank_account/').removesuffix('/')
+#         bank_account = BankAccount.objects.get(id=bank_account_id)
+#         self.assertEqual(bank_account.balance, 2000.00)
+
+#     def test_bank_account_delete(self):
+#         # удаление банковского счёта суперпользователем
+#         self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+#         body = {'balance': '1000.00', 'bank': f'/api/bank/{self.bank.id}/', 'client': f'/api/client/{self.client_instance.id}/'}
+#         response = self.api_client.post('/api/bank_account/', body)
+#         self.assertEqual(response.status_code, CREATED)
+#         resp_body = json.loads(response.content.decode())
+#         url = resp_body['url'].removeprefix('http://testserver')
+#         response = self.api_client.delete(url)
+#         self.assertEqual(response.status_code, NO_CONTENT)
+#         # проверка удаления банковского счёта
+#         id = url.removeprefix('/api/bank_account/').removesuffix('/')
+#         self.assertFalse(BankAccount.objects.filter(id=id).exists())
+
+#     def test_bank_account_403(self):
+#         self.api_client.force_authenticate(user=self.user, token=self.user_token)
+#         body = {'balance': '1000.00', 'bank': f'/api/bank/{self.bank.id}/', 'client': f'/api/client/{self.client_instance.id}/'}
+#         response = self.api_client.post('/api/bank_account/', body)
+#         self.assertEqual(response.status_code, FORBIDDEN)
+
+
+class TransactionAPITest(TestCase):
+    def setUp(self):
+        self.api_client = APIClient()
+        # users
+        self.user = User.objects.create_user(username='user', password='user')
+        self.superuser = User.objects.create_superuser(username='admin', password='admin', is_superuser=True)
+        # tokens for users
+        self.user_token = Token.objects.create(user=self.user)
+        self.superuser_token = Token.objects.create(user=self.superuser)
+        # creating bank
+        self.bank = Bank.objects.create(title=TEST_TITLE, foundation_date=timezone.now().date())
+        # creating client
+        self.client_instance_1 = Client.objects.create(user=self.user, first_name='Test1', last_name='Testovich1', phone='+79000000001')
+        # сreating bank accounts
+        self.bank_account_1 = BankAccount.objects.create(balance=Decimal('1000.00'), bank=self.bank, client=self.client_instance_1)
+        self.bank_account_2 = BankAccount.objects.create(balance=Decimal('2000.00'), bank=self.bank, client=self.client_instance_1)
+
+    # def test_transaction_creation(self):
+    #     # создание транзакции для суперпользователя
+    #     self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+    #     body = {
+    #         'initializer': f'/api/client/{self.client_instance_1.id}/',
+    #         'amount': '500.00',
+    #         'transaction_date': timezone.now().date(),
+    #         'description': 'Test transaction',
+    #         'from_bank_account_id': f'/api/bank_account/{self.bank_account_1.id}/',
+    #         'to_bank_account_id': f'/api/bank_account/{self.bank_account_2.id}/'
+    #     }
+    #     response = self.api_client.post('/api/transaction/', body)
+    #     self.assertEqual(response.status_code, CREATED)
+    #     # проверка получения созданного банковского счёта суперпользователем
+    #     resp_body = json.loads(response.content.decode())
+    #     url = resp_body['url'].removeprefix('http://testserver')
+    #     response = self.api_client.get(url)
+    #     self.assertEqual(response.status_code, OK)
+    #     # проверка заголовков
+    #     self.assertEqual(self.api_client.head(url).status_code, OK)
+
+
+    # def test_transaction_update(self):
+    #     # обновление транзакции суперпользователем
+    #     self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+    #     body = {
+    #         'initializer': f'/api/client/{self.client_instance_1.id}/',
+    #         'amount': '500.00',
+    #         'transaction_date': timezone.now().date(),
+    #         'description': 'Test transaction',
+    #         'from_bank_account_id': f'/api/bank_account/{self.bank_account_1.id}/',
+    #         'to_bank_account_id': f'/api/bank_account/{self.bank_account_2.id}/'
+    #     }
+    #     response = self.api_client.post('/api/transaction/', body)
+    #     self.assertEqual(response.status_code, CREATED)
+    #     resp_body = json.loads(response.content.decode())
+    #     resp_body['amount'] = '1000.00'
+    #     url = resp_body['url'].removeprefix('http://testserver')
+    #     response = self.api_client.put(url, resp_body)
+    #     self.assertEqual(response.status_code, OK)
+    #     # проверка обновления транзакции
+    #     transaction_id = url.removeprefix('/api/transaction/').removesuffix('/')
+    #     transaction = Transaction.objects.get(id=transaction_id)
+    #     self.assertEqual(transaction.amount, 1000.00)
+
+    # def test_transaction_delete(self):
+    #     # удаление транзакции суперпользователем
+    #     self.api_client.force_authenticate(user=self.superuser, token=self.superuser_token)
+    #     body = {
+    #         'initializer': f'/api/client/{self.client_instance_1.id}/',
+    #         'amount': '500.00',
+    #         'transaction_date': timezone.now().date(),
+    #         'description': 'Test transaction',
+    #         'from_bank_account_id': f'/api/bank_account/{self.bank_account_1.id}/',
+    #         'to_bank_account_id': f'/api/bank_account/{self.bank_account_2.id}/'
+    #     }
+    #     response = self.api_client.post('/api/transaction/', body)
+    #     self.assertEqual(response.status_code, CREATED)
+    #     resp_body = json.loads(response.content.decode())
+    #     url = resp_body['url'].removeprefix('http://testserver')
+    #     response = self.api_client.delete(url)
+    #     self.assertEqual(response.status_code, NO_CONTENT)
+    #     # проверка удаления транзакции
+    #     id = url.removeprefix('/api/transaction/').removesuffix('/')
+    #     self.assertFalse(Transaction.objects.filter(id=id).exists())
+
+
+    def test_transaction_creation_regular_user(self):
+        # создание транзакции обычным пользователем инициализатором
+        # self.api_client.force_authenticate(user=self.user, token=self.user_token)
+        # body = {
+        #     'initializer': f'/api/client/{self.client_instance_1.user.id}/',
+        #     'amount': '500.00',
+        #     'transaction_date': timezone.now().date(),
+        #     'description': 'Test transaction',
+        #     'from_bank_account_id': f'/api/bank_account/{self.bank_account_1.id}/',
+        #     'to_bank_account_id': f'/api/bank_account/{self.bank_account_2.id}/'
+        # }
+        # response = self.api_client.post('/api/transaction/', body)
+        # self.assertEqual(response.status_code, CREATED)
+        # # проверка создания транзакции
+        # resp_body = json.loads(response.content.decode())
+        # url = resp_body['url'].removeprefix('http://testserver')
+        # response = self.api_client.get(url)
+        # self.assertEqual(response.status_code, OK)
+
+        # создание транзакции обычным пользователем не инициализатором
+        self.api_client.force_authenticate(user=self.user, token=self.user_token)
+        other_user = User.objects.create_user(username='other_user', password='other_user')
+        other_user_token = Token.objects.create(user=other_user)
+        print(other_user.id)
+        self.user_instance = Client.objects.create(user=other_user, first_name='Test1', last_name='Testovich1', phone='+79000000001')
+        print(self.user_instance.user.id)
+        body = {
+            'initializer': f'/api/client/{self.user_instance.id}/',
+            'amount': '500.00',
+            'transaction_date': timezone.now().date(),
+            'description': 'Test transaction',
+            'from_bank_account_id': f'/api/bank_account/{self.bank_account_1.id}/',
+            'to_bank_account_id': f'/api/bank_account/{self.bank_account_2.id}/'
+        }
+        response = self.api_client.post('/api/transaction/', body)
+        self.assertEqual(response.status_code, FORBIDDEN)

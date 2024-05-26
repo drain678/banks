@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import Bank, Client, Transaction, BankAccount, BankClient, TransactionClient, BankAccountClient
+from .models import Bank, Client, Transaction, BankAccount, BankClient, TransactionClient
 
 
-class BankAccountClientInline(admin.TabularInline):
-    model = BankAccountClient
+class BankAccountInline(admin.TabularInline):
+    model = BankAccount
     extra = 1
 
 
@@ -27,15 +27,15 @@ class BankAdmin(admin.ModelAdmin):
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     model = Client
-    inlines = (TransactionClientInline, BankAccountClientInline)
+    inlines = (TransactionClientInline, BankAccountInline)
     list_display = ('first_name', 'last_name', 'phone')
 
 
 @admin.register(BankAccount)
 class BankAccountAdmin(admin.ModelAdmin):
+    list_display = ('id', 'balance', 'bank', 'client')
+    search_fields = ('id', 'balance')
     model = BankAccount
-    inlines = (BankAccountClientInline,)
-    list_display = ('balance', 'client')
 
 
 @admin.register(Transaction)

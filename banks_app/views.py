@@ -1,7 +1,7 @@
 from rest_framework import viewsets
-from .models import Bank, Client, BankAccount, Transaction
-from .serializers import BankSerializer, ClientSerializer, BankAccountSerializer, TransactionSerializer
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from .models import Bank, BankClient, Client, BankAccount, Transaction
+from .serializers import BankClientSerializer, BankSerializer, ClientSerializer, BankAccountSerializer, TransactionSerializer
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, BasePermission
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -11,7 +11,7 @@ class BankViewSet(viewsets.ModelViewSet):
     serializer_class = BankSerializer
    
     def get_permissions(self):
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAdminUser]
@@ -29,13 +29,22 @@ class ClientViewSet(viewsets.ModelViewSet):
         permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-# TODO: права на транзакции, можно только просматривать и создавать (создавать может только отправитель) +
-# TODO: запросы в postman 
-# TODO: запретить удаление, создание, обновление для BankAccount +
 
 class BankAccountViewSet(viewsets.ModelViewSet):
     queryset = BankAccount.objects.all()
     serializer_class = BankAccountSerializer
+
+    def get_permissions(self):
+        if self.action in ['delete', 'create', 'update']:
+            permission_classes = [IsAdminUser]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+    
+
+class BankClientViewSet(viewsets.ModelViewSet):
+    queryset = BankClient.objects.all()
+    serializer_class = BankClientSerializer
 
     def get_permissions(self):
         if self.action in ['delete', 'create', 'update']:
@@ -50,14 +59,16 @@ class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
 
     def get_permissions(self):
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
         elif self.action == 'create':
-            if Transaction.initializer == self.request.user:
+            initializer = self.request.data.get('initializer').removeprefix('/api/client/').removesuffix('/')
+            print(initializer)
+            print(self.request.user.id)
+            if self.request.user.id == initializer:
                 permission_classes = [IsAuthenticated]
             else:
                 permission_classes = [IsAdminUser]
         else:
             permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
-

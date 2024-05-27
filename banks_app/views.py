@@ -62,10 +62,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
         elif self.action == 'create':
-            initializer = self.request.data.get('initializer').removeprefix('/api/client/').removesuffix('/')
-            print(initializer)
-            print(self.request.user.id)
-            if self.request.user.id == initializer:
+            initializer_id = self.request.data.get('initializer').removeprefix('/api/client/').removesuffix('/')
+            id_sender = self.request.user.client.id
+            if str(id_sender) == str(initializer_id):
                 permission_classes = [IsAuthenticated]
             else:
                 permission_classes = [IsAdminUser]

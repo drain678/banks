@@ -1,0 +1,18 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+<title>Transaction Detail</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-5">Transaction Detail</h1>
+    <p><strong>ID:</strong> {{ transaction.id }}</p>
+    <p><strong>Initializer:</strong> {{ transaction.initializer }}</p>
+    <p><strong>Amount:</strong> {{ transaction.amount }}</p>
+    <p><strong>Date:</strong> {{ transaction.transaction_date }}</p>
+    <p><strong>Description:</strong> {{ transaction.description }}</p>
+    <p><strong>From:</strong> {{ transaction.from_bank_account_id.id }}</p>
+    <p><strong>To:</strong> {{ transaction.to_bank_account_id.id }}</p>
+</div>
+{% endblock %}

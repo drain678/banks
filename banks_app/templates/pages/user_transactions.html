@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+<title>User Transactions</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-5">User Transactions</h1>
+    <ul>
+        {% for transaction in transactions %}
+        <li>{{ transaction }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

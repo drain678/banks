@@ -1,0 +1,87 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+<title>Profile</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center my-5">User Profile</h1>
+    <p><strong>Username:</strong> {{ client.user.username }}</p>
+    <p><strong>First Name:</strong> {{ client.first_name }}</p>
+    <p><strong>Last Name:</strong> {{ client.last_name }}</p>
+    <p><strong>Phone:</strong> {{ client.phone }}</p>
+
+    <h2>Banks:</h2>
+    <ul class="list-group">
+        {% for bank in banks %}
+        <li class="list-group-item mb-3">
+            <p><strong>Title:</strong> {{ bank.title }}</p>
+            <p><strong>Foundation Date:</strong> {{ bank.foundation_date }}</p>
+            <div class="mt-2">
+                <form method="get" action="{% url 'bank_detail' bank.id %}" class="d-inline-block mb-2 mr-2">
+                    <button type="submit" class="btn btn-primary btn-sm">View Details</button>
+                </form>
+                {% if request.user.is_superuser %}
+                <form method="post" action="{% url 'delete_bank' bank.id %}?next={{ request.path }}" class="d-inline-block">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete Bank</button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Bank Accounts:</h2>
+    <ul class="list-group">
+        {% for bank_account in bank_accounts %}
+        <li class="list-group-item mb-3">
+            <p><strong>Balance:</strong> {{ bank_account.balance }}</p>
+            <p><strong>Bank:</strong> {{ bank_account.bank.title }}</p>
+            <div class="mt-2">
+                <form method="get" action="{% url 'bank_detail' bank_account.bank.id %}"
+                    class="d-inline-block mb-2 mr-2">
+                    <button type="submit" class="btn btn-primary btn-sm">View Bank Details</button>
+                </form>
+                {% if request.user.is_superuser %}
+                <form method="post" action="{% url 'delete_bank_account' bank_account.id %}?next={{ request.path }}"
+                    class="d-inline-block">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete Bank Account</button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Transactions:</h2>
+    <ul class="list-group">
+        {% for transaction in transactions %}
+        <li class="list-group-item mb-3">
+            <p><strong>Amount:</strong> {{ transaction.amount }}</p>
+            <p><strong>Date:</strong> {{ transaction.transaction_date }}</p>
+            <p><strong>Description:</strong> {{ transaction.description }}</p>
+            <div class="mt-2">
+                <form method="get" action="{% url 'transaction_detail' transaction.id %}"
+                    class="d-inline-block mb-2 mr-2">
+                    <button type="submit" class="btn btn-primary btn-sm">View Transaction Details</button>
+                </form>
+                {% if request.user.is_superuser %}
+                <form method="post" action="{% url 'delete_transaction' transaction.id %}?next={{ request.path }}"
+                    class="d-inline-block">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete Transaction</button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="mt-5">
+        <a class="btn btn-primary" href="{% url 'create_transaction' %}">Add New Transaction</a>
+    </div>
+</div>
+{% endblock %}

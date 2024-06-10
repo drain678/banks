@@ -1,3 +1,5 @@
+from django.dispatch import receiver
+from django.db.models.signals import post_delete
 from decimal import Decimal
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -112,7 +114,6 @@ class BankClient(UUIDMixin):
 
 class BankAccount(UUIDMixin):
     balance = models.DecimalField(decimal_places=2, max_digits=40, validators=[MinValueValidator(Decimal('0.00'))])
-    # bank_and_client = models.OneToOneField(BankClient, on_delete=models.CASCADE)
     bank = models.ForeignKey(Bank, verbose_name=_('bank'), on_delete=models.CASCADE)
     client = models.ForeignKey(Client, verbose_name=_('client'), on_delete=models.CASCADE)
 
@@ -125,26 +126,9 @@ class BankAccount(UUIDMixin):
         return f'Bank_account: {self.id}, balance: {self.balance}'
 
 
-# class BankAccountClient(UUIDMixin):
-#     bank_account = models.ForeignKey(BankAccount, verbose_name=_(
-#         'bank_account'), on_delete=models.CASCADE)
-#     client = models.ForeignKey(Client, verbose_name=_(
-#         'client'), on_delete=models.CASCADE)
-
-#     def __str__(self) -> str:
-#         return f'{self.client} - {self.bank_account}'
-
-#     class Meta:
-#         db_table = '"banks"."bank_account_client"'
-#         unique_together = (
-#             ('bank_account', 'client'),
-#         )
-#         verbose_name = _('relationship bank_account client')
-#         verbose_name_plural = _('relationships bank_account client')
-
-
 class Transaction(UUIDMixin):
-    initializer = models.ForeignKey(Client, on_delete=models.RESTRICT, related_name='initializer')
+    initializer = models.ForeignKey(
+        Client, on_delete=models.CASCADE, related_name='initializer')
     amount = models.DecimalField(decimal_places=2, max_digits=15, validators=[MinValueValidator(Decimal('0.00'))])
     transaction_date = models.DateField(default=get_datetime, validators=[check_created])
     description = models.CharField(
@@ -184,3 +168,10 @@ class TransactionClient(UUIDMixin):
         )
         verbose_name = _('relationship transaction client')
         verbose_name_plural = _('relationships transaction client')
+
+
+@receiver(post_delete, sender=BankAccount)
+def delete_bank_client_relation(sender, instance, **kwargs):
+    if not BankAccount.objects.filter(client=instance.client, bank=instance.bank).exists():
+        BankClient.objects.filter(
+            client=instance.client, bank=instance.bank).delete()

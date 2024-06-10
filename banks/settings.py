@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'banks_app',
     'rest_framework',
     'rest_framework.authtoken',
+    'crispy_forms',
+    'crispy_bootstrap4',
 ]
 
 MIDDLEWARE = [
@@ -59,7 +61,7 @@ ROOT_URLCONF = 'banks.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -145,3 +147,13 @@ REST_FRAMEWORK = {
 
 
 TEST_RUNNER = 'tests.runner.PostgresSchemaRunner'
+
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
+
+
+LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_REDIRECT_URL = '/profile/'

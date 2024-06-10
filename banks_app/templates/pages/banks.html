@@ -1,0 +1,34 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+<title>Banks</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center my-5">Banks</h1>
+    {% if request.user.is_superuser %}
+    <a href="{% url 'create_bank' %}" class="btn btn-success mb-3">Add Bank</a>
+    {% endif %}
+    <ul class="list-group">
+        {% for bank in banks %}
+        <li class="list-group-item mb-3">
+            <p><strong>Title:</strong> {{ bank.title }}</p>
+            <p><strong>Foundation Date:</strong> {{ bank.foundation_date }}</p>
+            <div class="mt-2">
+                <form method="get" action="{% url 'bank_detail' bank.id %}" class="d-inline-block mb-2 mr-2">
+                    <button type="submit" class="btn btn-primary btn-sm">View Details</button>
+                </form>
+                {% if request.user.is_superuser %}
+                <form method="post" action="{% url 'delete_bank' bank.id %}?next={{ request.path }}"
+                    class="d-inline-block">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete Bank</button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

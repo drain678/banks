@@ -1,0 +1,18 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+<title>{{ client.first_name }} {{ client.last_name }} Details</title>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">{{ client.first_name }} {{ client.last_name }}</h1>
+    <p><strong>Phone:</strong> {{ client.phone }}</p>
+    <h2>Banks</h2>
+    <ul class="list-group">
+        {% for bank in client.banks.all %}
+        <li class="list-group-item">{{ bank.title }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

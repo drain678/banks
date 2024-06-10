@@ -1,9 +1,234 @@
 from rest_framework import viewsets
 from .models import Bank, BankClient, Client, BankAccount, Transaction
 from .serializers import BankClientSerializer, BankSerializer, ClientSerializer, BankAccountSerializer, TransactionSerializer
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, BasePermission
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework import status
+from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404, render, redirect
+from django.views.generic import ListView, DetailView, DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.auth import login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.views import LoginView
+from .forms import ClientForm, UserRegistrationForm, BankForm, BankAccountForm, TransactionForm
+from django.contrib.auth.decorators import user_passes_test
+
+
+def is_admin(user):
+    return user.is_superuser
+
+
+@login_required
+def profile_view(request):
+    try:
+        client = Client.objects.get(user=request.user)
+    except Client.DoesNotExist:
+        return redirect('create_client')
+
+    if request.method == 'POST':
+        form = ClientForm(request.POST, instance=client)
+        if form.is_valid():
+            client = form.save(commit=False)
+            client.user = request.user
+            client.save()
+            return redirect('profile')
+    else:
+        form = ClientForm(instance=client)
+
+    banks = Bank.objects.filter(bankclient__client=client) if client else []
+    bank_accounts = BankAccount.objects.filter(client=client) if client else []
+    transactions = Transaction.objects.filter(initializer=client) if client else []
+
+    context = {
+        'client': client,
+        'form': form,
+        'banks': banks,
+        'bank_accounts': bank_accounts,
+        'transactions': transactions,
+    }
+
+    return render(request, 'pages/profile.html', context)
+
+
+@login_required
+def clients_view(request):
+    clients = Client.objects.all()
+    context = {
+        'clients': clients,
+    }
+    return render(request, 'pages/clients.html', context)
+
+
+@login_required
+def create_client(request):
+    if request.method == 'POST':
+        form = ClientForm(request.POST)
+        if form.is_valid():
+            client = form.save(commit=False)
+            client.user = request.user
+            client.save()
+            form.save_m2m()
+            return redirect('clients')
+    else:
+        form = ClientForm()
+    return render(request, 'pages/create_client.html', {'form': form})
+
+
+
+def register_view(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('create_client')
+    else:
+        form = UserRegistrationForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+
+class CustomLoginView(LoginView):
+    form_class = AuthenticationForm
+    template_name = 'registration/login.html'
+
+
+@login_required
+@user_passes_test(is_admin)
+def delete_transaction_view(request, pk):
+    transaction = get_object_or_404(Transaction, pk=pk)
+    transaction.delete()
+    return redirect(request.GET.get('next', 'transactions'))
+
+
+@login_required
+def create_transaction_view(request):
+    if request.method == 'POST':
+        form = TransactionForm(request.POST, user=request.user)
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.initializer = request.user.client
+            transaction.save()
+            return redirect('transactions')
+    else:
+        form = TransactionForm(user=request.user)
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'pages/create_transaction.html', context)
+
+
+class UserTransactionListView(ListView):
+    model = Transaction
+    template_name = 'pages/user_transactions.html'
+    context_object_name = 'transactions'
+
+    def get_queryset(self):
+        return Transaction.objects.filter(initializer=self.request.user)
+
+
+class TransactionDetailView(DetailView):
+    model = Transaction
+    template_name = 'pages/transaction_detail.html'
+    context_object_name = 'transaction'
+
+
+@login_required
+def transactions_view(request):
+    transactions = Transaction.objects.all()
+    context = {
+        'transactions': transactions,
+    }
+    return render(request, 'pages/transactions.html', context)
+
+
+@login_required
+def bank_accounts_view(request):
+    bank_accounts = BankAccount.objects.all()
+    context = {
+        'bank_accounts': bank_accounts,
+    }
+    return render(request, 'pages/bank_accounts.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def create_bank_account_view(request):
+    if request.method == 'POST':
+        form = BankAccountForm(request.POST)
+        if form.is_valid():
+            bank_account = form.save(commit=False)
+            client = form.cleaned_data['client']
+            bank_account.client = client
+            bank_account.save()
+            if not BankClient.objects.filter(client=client, bank=bank_account.bank).exists():
+                BankClient.objects.create(client=client, bank=bank_account.bank)
+            return redirect('bank_accounts')
+    else:
+        form = BankAccountForm()
+    return render(request, 'pages/create_bank_account.html', {'form': form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def delete_bank_account_view(request, pk):
+    bank_account = get_object_or_404(BankAccount, pk=pk)
+    if request.user.is_superuser:
+        bank_account.delete()
+    return redirect(request.GET.get('next', 'bank_accounts'))
+
+
+def homepage(request):
+    return render(request, 'index.html')
+
+
+@login_required
+@user_passes_test(is_admin)
+def create_bank_view(request):
+    if request.method == 'POST':
+        form = BankForm(request.POST)
+        if form.is_valid():
+            bank = form.save(commit=False)
+            bank.save()
+            return redirect('banks')
+    else:
+        form = BankForm()
+    return render(request, 'pages/create_bank.html', {'form': form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def delete_bank_view(request, pk):
+    bank = get_object_or_404(Bank, pk=pk)
+    if request.user.is_superuser:
+        bank.delete()
+    return redirect(request.GET.get('next', 'banks'))
+
+
+class BankListView(ListView):
+    model = Bank
+    template_name = 'pages/banks.html'
+    context_object_name = 'banks'
+
+
+class ClientListView(ListView):
+    model = Client
+    template_name = 'pages/clients.html'
+    context_object_name = 'clients'
+
+
+class BankDetailView(DetailView):
+    model = Bank
+    template_name = 'pages/bank_detail.html'
+    context_object_name = 'bank'
+
+
+class ClientDetailView(DetailView):
+    model = Client
+    template_name = 'pages/client_detail.html'
+    context_object_name = 'client'
 
 
 class BankViewSet(viewsets.ModelViewSet):

@@ -1,0 +1,64 @@
+{% extends "base_generic.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+<title>Login</title>
+{% endblock %}
+
+{% block content %}
+<div class="container d-flex vh-100">
+    <div class="row justify-content-center align-self-center w-100">
+        <div class="col-md-6">
+            <h2 class="mb-4 text-center">Login</h2>
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                Your username and password didn't match. Please try again.
+            </div>
+            {% endif %}
+
+            {% if next %}
+            {% if user.is_authenticated %}
+            <div class="alert alert-warning">
+                Your account doesn't have access to this page. To proceed,
+                please log in with an account that has access.
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                Please log in to see this page.
+            </div>
+            {% endif %}
+            {% endif %}
+
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <!-- 2 column grid layout for inline styling -->
+                <div class="row mb-4">
+                    <div class="col d-flex justify-content-center">
+                        <!-- Checkbox -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="form2Example31" checked />
+                            <label class="form-check-label" for="form2Example31"> Remember me </label>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <!-- Simple link -->
+                        <a href="{% url 'password_reset' %}">Forgot password?</a>
+                    </div>
+                </div>
+
+                <!-- Submit button -->
+                <button type="submit" class="btn btn-primary btn-block mb-4 w-100 btn-lg">Log in</button>
+                <input type="hidden" name="next" value="{{ next }}" />
+            </form>
+
+            <!-- Register buttons -->
+            <div class="text-center">
+                <p>Not a member? <a href="{% url 'register' %}">Register</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

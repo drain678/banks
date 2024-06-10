@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+<title>Create Transaction</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center my-5">Create Transaction</h1>
+    <form method="post" action="{% url 'create_transaction' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
+{% endblock %}

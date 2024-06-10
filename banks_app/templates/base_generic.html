@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.esm.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+    {% block title %}<title>Banking System</title>{% endblock %}
+</head>
+
+<body>
+    {% block sidebar %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'homepage' %}">Homepage</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+                aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link active" aria-current="page" href="{% url 'banks' %}">Banks</a>
+                    <a class="nav-link active" href="{% url 'clients' %}">Clients</a>
+                    {% if user.is_superuser %}
+                    <a class="nav-link active" href="{% url 'bank_accounts' %}">Bank Accounts</a>
+                    <a class="nav-link active" href="{% url 'transactions' %}">Transactions</a>
+                    {% endif %}
+                </div>
+                <div class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <a class="btn btn-outline-primary btn-lg mx-2" href="{% url 'profile' %}">Profile</a>
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger btn-lg" type="submit">Logout</button>
+                    </form>
+                    {% else %}
+                    <a class="btn btn-outline-primary btn-lg mx-2" href="{% url 'login' %}">Log in</a>
+                    <a class="btn btn-outline-success btn-lg" href="{% url 'register' %}">Sign up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    {% block content %}
+    {% endblock %}
+</body>
+
+</html>

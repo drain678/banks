@@ -1,0 +1,29 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+<title>Clients</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center my-5">Clients</h1>
+
+    <ul class="list-group">
+        {% for client in clients %}
+        <li class="list-group-item mb-3">
+            <p><strong>Username:</strong> {{ client.user.username }}</p>
+            <p><strong>First Name:</strong> {{ client.first_name }}</p>
+            <p><strong>Last Name:</strong> {{ client.last_name }}</p>
+            <p><strong>Phone:</strong> {{ client.phone }}</p>
+            <div class="mt-2">
+                {% if request.user.is_superuser %}
+                <form method="get" action="{% url 'client_detail' client.id %}" class="d-inline-block mb-2 mr-2">
+                    <button type="submit" class="btn btn-primary btn-sm">View Details</button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

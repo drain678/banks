@@ -42,22 +42,12 @@
                             <label class="form-check-label" for="form2Example31"> Remember me </label>
                         </div>
                     </div>
-
-                    <div class="col">
-                        <!-- Simple link -->
-                        <a href="{% url 'password_reset' %}">Forgot password?</a>
-                    </div>
                 </div>
 
                 <!-- Submit button -->
                 <button type="submit" class="btn btn-primary btn-block mb-4 w-100 btn-lg">Log in</button>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
-
-            <!-- Register buttons -->
-            <div class="text-center">
-                <p>Not a member? <a href="{% url 'register' %}">Register</a></p>
-            </div>
         </div>
     </div>
 </div>

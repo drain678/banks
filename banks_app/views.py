@@ -6,10 +6,9 @@ from rest_framework import status
 from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404, render, redirect
-from django.views.generic import ListView, DetailView, DeleteView
+from django.views.generic import ListView, DetailView
 from django.urls import reverse_lazy
-from django.contrib.auth.mixins import UserPassesTestMixin
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
 from .forms import ClientForm, UserRegistrationForm, BankForm, BankAccountForm, TransactionForm
@@ -18,6 +17,11 @@ from django.contrib.auth.decorators import user_passes_test
 
 def is_admin(user):
     return user.is_superuser
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('homepage')
 
 
 @login_required

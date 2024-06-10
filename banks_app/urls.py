@@ -20,7 +20,7 @@ urlpatterns = [
     path('banks/<uuid:pk>/', views.BankDetailView.as_view(), name='bank_detail'),
     path('clients/<uuid:pk>/', views.ClientDetailView.as_view(), name='client_detail'),
     path('profile/', views.profile_view, name='profile'),
-    path('logout/', LogoutView.as_view(template_name='registration/logout.html'), name='logout'),
+    path('logout/', views.logout_view, name='logout'),
     path('delete_bank_account/<uuid:pk>/', views.delete_bank_account_view, name='delete_bank_account'),
     path('create_bank_account/', views.create_bank_account_view, name='create_bank_account'),
     path('bank_accounts/', views.bank_accounts_view, name='bank_accounts'),

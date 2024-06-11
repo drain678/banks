@@ -114,7 +114,7 @@ def create_transaction_view(request):
             transaction = form.save(commit=False)
             transaction.initializer = request.user.client
             transaction.save()
-            return redirect('transactions')
+            return redirect('profile')
     else:
         form = TransactionForm(user=request.user)
 
@@ -158,30 +158,24 @@ def bank_accounts_view(request):
 
 
 @login_required
-@user_passes_test(is_admin)
 def create_bank_account_view(request):
     if request.method == 'POST':
         form = BankAccountForm(request.POST)
         if form.is_valid():
             bank_account = form.save(commit=False)
-            client = form.cleaned_data['client']
-            bank_account.client = client
+            bank_account.client = Client.objects.get(user=request.user)
             bank_account.save()
-            if not BankClient.objects.filter(client=client, bank=bank_account.bank).exists():
-                BankClient.objects.create(client=client, bank=bank_account.bank)
-            return redirect('bank_accounts')
+            return redirect('profile')
     else:
         form = BankAccountForm()
     return render(request, 'pages/create_bank_account.html', {'form': form})
 
 
 @login_required
-@user_passes_test(is_admin)
 def delete_bank_account_view(request, pk):
     bank_account = get_object_or_404(BankAccount, pk=pk)
-    if request.user.is_superuser:
-        bank_account.delete()
-    return redirect(request.GET.get('next', 'bank_accounts'))
+    bank_account.delete()
+    return redirect(request.GET.get('next', 'profile'))
 
 
 def homepage(request):
@@ -292,6 +286,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         elif self.action == 'create':
             initializer_id = self.request.data.get('initializer').removeprefix('/api/client/').removesuffix('/')
+            # print(self.request.user.client.id)
+            # print('***********************************')
             id_sender = self.request.user.client.id
             if str(id_sender) == str(initializer_id):
                 permission_classes = [IsAuthenticated]

@@ -7,9 +7,6 @@
 {% block content %}
 <div class="container">
     <h1 class="text-center my-5">Bank Accounts</h1>
-    {% if request.user.is_superuser %}
-    <a href="{% url 'create_bank_account' %}" class="btn btn-success mb-3">Add Bank Account</a>
-    {% endif %}
     <ul class="list-group">
         {% for bank_account in bank_accounts %}
         <li class="list-group-item mb-3">

@@ -128,7 +128,7 @@ class BankAccount(UUIDMixin):
 
 class Transaction(UUIDMixin):
     initializer = models.ForeignKey(
-        Client, on_delete=models.CASCADE, related_name='initializer')
+        Client, on_delete=models.RESTRICT, related_name='initializer')
     amount = models.DecimalField(decimal_places=2, max_digits=15, validators=[MinValueValidator(Decimal('0.00'))])
     transaction_date = models.DateField(default=get_datetime, validators=[check_created])
     description = models.CharField(

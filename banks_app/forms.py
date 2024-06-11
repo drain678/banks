@@ -23,7 +23,7 @@ class UserRegistrationForm(forms.ModelForm):
 class BankAccountForm(forms.ModelForm):
     class Meta:
         model = BankAccount
-        fields = ['client', 'balance', 'bank']
+        fields = ['balance', 'bank']
 
 
 class ClientForm(forms.ModelForm):

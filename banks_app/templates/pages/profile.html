@@ -22,12 +22,6 @@
                 <form method="get" action="{% url 'bank_detail' bank.id %}" class="d-inline-block mb-2 mr-2">
                     <button type="submit" class="btn btn-primary btn-sm">View Details</button>
                 </form>
-                {% if request.user.is_superuser %}
-                <form method="post" action="{% url 'delete_bank' bank.id %}?next={{ request.path }}" class="d-inline-block">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm">Delete Bank</button>
-                </form>
-                {% endif %}
             </div>
         </li>
         {% endfor %}
@@ -44,17 +38,19 @@
                     class="d-inline-block mb-2 mr-2">
                     <button type="submit" class="btn btn-primary btn-sm">View Bank Details</button>
                 </form>
-                {% if request.user.is_superuser %}
                 <form method="post" action="{% url 'delete_bank_account' bank_account.id %}?next={{ request.path }}"
                     class="d-inline-block">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger btn-sm">Delete Bank Account</button>
                 </form>
-                {% endif %}
             </div>
         </li>
         {% endfor %}
     </ul>
+
+    <div class="mt-5">
+        <a class="btn btn-primary" href="{% url 'create_bank_account' %}">Add New Bank Account</a>
+    </div>
 
     <h2>Transactions:</h2>
     <ul class="list-group">
@@ -68,13 +64,6 @@
                     class="d-inline-block mb-2 mr-2">
                     <button type="submit" class="btn btn-primary btn-sm">View Transaction Details</button>
                 </form>
-                {% if request.user.is_superuser %}
-                <form method="post" action="{% url 'delete_transaction' transaction.id %}?next={{ request.path }}"
-                    class="d-inline-block">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm">Delete Transaction</button>
-                </form>
-                {% endif %}
             </div>
         </li>
         {% endfor %}

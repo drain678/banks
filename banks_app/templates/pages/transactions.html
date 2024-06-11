@@ -7,9 +7,6 @@
 {% block content %}
 <div class="container">
     <h1 class="text-center my-5">Transactions</h1>
-    {% if request.user.is_superuser %}
-    <a href="{% url 'create_transaction' %}" class="btn btn-success mb-3">Add Transaction</a>
-    {% endif %}
     <ul class="list-group">
         {% for transaction in transactions %}
         <li class="list-group-item mb-3">
@@ -20,13 +17,6 @@
             <p><strong>To:</strong> {{transaction.to_bank_account_id }}</p>
             <p><strong>Date:</strong> {{ transaction.transaction_date }}</p>
             <div class="mt-2">
-                {% if request.user.is_superuser %}
-                <form method="post" action="{% url 'delete_transaction' transaction.id %}?next={{ request.path }}"
-                    class="d-inline-block">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm">Delete Transaction</button>
-                </form>
-                {% endif %}
             </div>
         </li>
         {% endfor %}

@@ -48,15 +48,40 @@ class LoginForm(forms.Form):
     password = forms.CharField(max_length=65, widget=forms.PasswordInput)
 
 
-class TransactionForm(forms.ModelForm):
+# class TransactionForm(forms.ModelForm):
+#     class Meta:
+#         model = Transaction
+#         fields = ['amount', 'description', 'from_bank_account_id', 'to_bank_account_id', 'transaction_date']
+
+#     def __init__(self, *args, **kwargs):
+#         user = kwargs.pop('user', None)
+#         super(TransactionForm, self).__init__(*args, **kwargs)
+#         if user:
+#             self.fields['from_bank_account_id'].queryset = BankAccount.objects.filter(
+#                 client__user=user)
+
+
+class ConfirmTransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
-        fields = ['amount', 'description', 'from_bank_account_id', 'to_bank_account_id', 'transaction_date']
+        fields = ['amount', 'description', 'transaction_date']
+        widgets = {
+            'transaction_date': forms.DateInput(attrs={'type': 'date'})
+        }
+
+
+class InitialTransactionForm(forms.Form):
+    from_bank_account_id = forms.ModelChoiceField(
+        queryset=BankAccount.objects.none(),
+        label='Select your bank account'
+    )
+    to_bank_account_uuid = forms.UUIDField(
+        label='Recipient Bank Account UUID'
+    )
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        super(TransactionForm, self).__init__(*args, **kwargs)
+        super(InitialTransactionForm, self).__init__(*args, **kwargs)
         if user:
             self.fields['from_bank_account_id'].queryset = BankAccount.objects.filter(
                 client__user=user)
-            self.fields['to_bank_account_id'].queryset = BankAccount.objects.all()

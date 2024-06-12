@@ -11,7 +11,7 @@ from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
-from .forms import ClientForm, UserRegistrationForm, BankForm, BankAccountForm, TransactionForm
+from .forms import ClientForm, ConfirmTransactionForm, InitialTransactionForm, UserRegistrationForm, BankForm, BankAccountForm
 from django.contrib.auth.decorators import user_passes_test
 
 
@@ -107,23 +107,62 @@ def delete_transaction_view(request, pk):
 
 
 @login_required
-def create_transaction_view(request):
+def confirm_transaction(request):
+    from_account_id = request.session.get('from_account_id')
+    to_account_id = request.session.get('to_account_id')
+
+    if not from_account_id or not to_account_id:
+        return redirect('create_transaction')
+
+    from_account = get_object_or_404(BankAccount, id=from_account_id)
+    to_account = get_object_or_404(BankAccount, id=to_account_id)
+
     if request.method == 'POST':
-        form = TransactionForm(request.POST, user=request.user)
+        form = ConfirmTransactionForm(request.POST)
         if form.is_valid():
             transaction = form.save(commit=False)
+            transaction.from_bank_account_id = from_account
+            transaction.to_bank_account_id = to_account
             transaction.initializer = request.user.client
-            transaction.save()
-            return redirect('profile')
+
+            if from_account.balance < transaction.amount:
+                form.add_error('amount', 'Insufficient funds in your account')
+            elif transaction.amount < 0:
+                form.add_error('amount', 'Amount cannot be negative')
+            else:
+                from_account.balance -= transaction.amount
+                to_account.balance += transaction.amount
+                from_account.save()
+                to_account.save()
+                transaction.save()
+                return redirect('profile')
     else:
-        form = TransactionForm(user=request.user)
+        form = ConfirmTransactionForm()
 
-    context = {
-        'form': form,
-    }
-    return render(request, 'pages/create_transaction.html', context)
+    return render(request, 'pages/confirm_transaction.html', {'form': form, 'from_account': from_account, 'to_account': to_account})
 
 
+@login_required
+def create_transaction(request):
+    if request.method == 'POST':
+        form = InitialTransactionForm(request.POST, user=request.user)
+        if form.is_valid():
+            from_account = form.cleaned_data['from_bank_account_id']
+            to_account_uuid = form.cleaned_data['to_bank_account_uuid']
+
+            try:
+                to_account = BankAccount.objects.get(id=to_account_uuid)
+                request.session['from_account_id'] = str(from_account.id)
+                request.session['to_account_id'] = str(to_account.id)
+                return redirect('confirm_transaction')
+            except BankAccount.DoesNotExist:
+                form.add_error('to_bank_account_uuid',
+                               'Bank account with this UUID does not exist')
+        return render(request, 'pages/create_transaction.html', {'form': form})
+    else:
+        form = InitialTransactionForm(user=request.user)
+        return render(request, 'pages/create_transaction.html', {'form': form})
+    
 class UserTransactionListView(ListView):
     model = Transaction
     template_name = 'pages/user_transactions.html'
@@ -163,8 +202,12 @@ def create_bank_account_view(request):
         form = BankAccountForm(request.POST)
         if form.is_valid():
             bank_account = form.save(commit=False)
-            bank_account.client = Client.objects.get(user=request.user)
+            client = Client.objects.get(user=request.user)
+            bank_account.client = client
             bank_account.save()
+
+            if not client.banks.filter(id=bank_account.bank.id).exists():
+                client.banks.add(bank_account.bank)
             return redirect('profile')
     else:
         form = BankAccountForm()

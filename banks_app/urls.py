@@ -35,7 +35,8 @@ urlpatterns = [
     path('create_client/', views.create_client, name='create_client'),
     path('create_bank/', views.create_bank_view, name='create_bank'),
     path('delete_bank/<uuid:pk>/', views.delete_bank_view, name='delete_bank'),
-    path('create_transaction', views.create_transaction_view, name='create_transaction'),
+    path('create_transaction/', views.create_transaction, name='create_transaction'),
+    path('confirm_transaction/', views.confirm_transaction, name='confirm_transaction'),
     path('transactions/', views.transactions_view, name='transactions'),
     path('delete_transaction/<uuid:pk>/', views.delete_transaction_view, name='delete_transaction'),
 ]

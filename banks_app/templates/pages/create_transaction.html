@@ -1,3 +1,5 @@
+<!-- templates/pages/create_transaction.html -->
+
 {% extends "base_generic.html" %}
 
 {% block title %}
@@ -6,11 +8,18 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="text-center my-5">Create Transaction</h1>
-    <form method="post" action="{% url 'create_transaction' %}">
+    <h1 class="text-center my-5">Create New Transaction</h1>
+    <form method="post" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Save</button>
+        <div class="mb-3">
+            <label for="id_from_bank_account_id" class="form-label">Select your bank account</label>
+            {{ form.from_bank_account_id }}
+        </div>
+        <div class="mb-3">
+            <label for="id_to_bank_account_uuid" class="form-label">Recipient Bank Account UUID</label>
+            {{ form.to_bank_account_uuid }}
+        </div>
+        <button type="submit" class="btn btn-primary">Next</button>
     </form>
 </div>
 {% endblock %}

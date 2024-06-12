@@ -1,0 +1,37 @@
+<!-- templates/pages/confirm_transaction.html -->
+
+{% extends "base_generic.html" %}
+
+{% block title %}
+<title>Confirm Transaction</title>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center my-5">Confirm Transaction</h1>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">From Bank Account:</label>
+            <p>{{ from_account.id }}</p>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">To Bank Account:</label>
+            <p>{{ to_account.id }}</p>
+        </div>
+        <div class="mb-3">
+            <label for="id_amount" class="form-label">Amount</label>
+            {{ form.amount }}
+        </div>
+        <div class="mb-3">
+            <label for="id_description" class="form-label">Description</label>
+            {{ form.description }}
+        </div>
+        <div class="mb-3">
+            <label for="id_transaction_date" class="form-label">Transaction Date</label>
+            {{ form.transaction_date }}
+        </div>
+        <button type="submit" class="btn btn-primary">Confirm Transaction</button>
+    </form>
+</div>
+{% endblock %}

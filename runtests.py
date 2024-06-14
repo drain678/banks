@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+"""File for run tests."""
+
 import os
 import sys
 

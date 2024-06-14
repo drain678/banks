@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms import CharField
-from .models import Bank, Client, BankAccount, Transaction
+
+from .models import Bank, BankAccount, Client, Transaction
 
 
 class UserRegistrationForm(forms.ModelForm):
@@ -32,6 +33,7 @@ class ClientForm(forms.ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple
     )
+
     class Meta:
         model = Client
         fields = ['first_name', 'last_name', 'phone', 'banks']

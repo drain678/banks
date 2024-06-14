@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Bank, Client, Transaction, BankAccount, BankClient, TransactionClient
+
+from .models import (Bank, BankAccount, BankClient, Client, Transaction,
+                     TransactionClient)
 
 
 class BankAccountInline(admin.TabularInline):
@@ -42,5 +44,10 @@ class BankAccountAdmin(admin.ModelAdmin):
 class TransactionAdmin(admin.ModelAdmin):
     model = Transaction
     inline = (TransactionClientInline,)
-    list_display = ('initializer', 'amount', 'transaction_date',
-                    'description', 'from_bank_account_id', 'to_bank_account_id')
+    list_display = (
+        'initializer',
+        'amount',
+        'transaction_date',
+        'description',
+        'from_bank_account_id',
+        'to_bank_account_id')

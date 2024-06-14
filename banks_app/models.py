@@ -1,17 +1,17 @@
-from django.dispatch import receiver
-from django.db.models.signals import post_delete
-from decimal import Decimal
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from uuid import uuid4
-from django.core.validators import MaxLengthValidator, MinLengthValidator, RegexValidator, MaxValueValidator, MinValueValidator
-from django.db import models
-from django.core.exceptions import ValidationError
 from datetime import datetime
-from django.utils import timezone
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from decimal import Decimal
+from uuid import uuid4
 
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import (MaxLengthValidator, MaxValueValidator,
+                                    MinLengthValidator, MinValueValidator,
+                                    RegexValidator)
+from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 def get_datetime() -> datetime:
@@ -46,9 +46,11 @@ class Bank(UUIDMixin):
     )
     foundation_date = models.DateField(
         default=get_datetime, validators=[check_created])
-    clients = models.ManyToManyField('Client', through='BankClient', verbose_name=_(
-        'clients'))
-    
+    clients = models.ManyToManyField(
+        'Client',
+        through='BankClient',
+        verbose_name=_('clients'))
+
     class Meta:
         db_table = '"banks"."bank"'
         verbose_name = _('bank')
@@ -82,8 +84,10 @@ class Client(UUIDMixin):
         regex=r'\+7\d{10}', message='Phone number must be 10 digits in total.')
     phone = models.CharField(max_length=12, validators=[phone_regex])
 
-    banks = models.ManyToManyField('Bank', through='BankClient', verbose_name=_(
-        'banks'))
+    banks = models.ManyToManyField(
+        'Bank',
+        through='BankClient',
+        verbose_name=_('banks'))
 
     class Meta:
         db_table = '"banks"."client"'
@@ -91,7 +95,10 @@ class Client(UUIDMixin):
         verbose_name_plural = _('clients')
 
     def __str__(self) -> str:
-        return f'Client: {self.first_name} {self.last_name}, phone: {self.phone}'
+        return f'Client: {
+            self.first_name} {
+            self.last_name}, phone: {
+            self.phone}'
 
 
 class BankClient(UUIDMixin):
@@ -113,9 +120,20 @@ class BankClient(UUIDMixin):
 
 
 class BankAccount(UUIDMixin):
-    balance = models.DecimalField(decimal_places=2, max_digits=40, validators=[MinValueValidator(Decimal('0.00'))])
-    bank = models.ForeignKey(Bank, verbose_name=_('bank'), on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, verbose_name=_('client'), on_delete=models.CASCADE)
+    balance = models.DecimalField(
+        decimal_places=2,
+        max_digits=40,
+        validators=[
+            MinValueValidator(
+                Decimal('0.00'))])
+    bank = models.ForeignKey(
+        Bank,
+        verbose_name=_('bank'),
+        on_delete=models.CASCADE)
+    client = models.ForeignKey(
+        Client,
+        verbose_name=_('client'),
+        on_delete=models.CASCADE)
 
     class Meta:
         db_table = '"banks"."bank_account"'
@@ -129,19 +147,32 @@ class BankAccount(UUIDMixin):
 class Transaction(UUIDMixin):
     initializer = models.ForeignKey(
         Client, on_delete=models.RESTRICT, related_name='initializer')
-    amount = models.DecimalField(decimal_places=2, max_digits=15, validators=[MinValueValidator(Decimal('0.00'))])
-    transaction_date = models.DateField(default=get_datetime, validators=[check_created])
+    amount = models.DecimalField(
+        decimal_places=2,
+        max_digits=15,
+        validators=[
+            MinValueValidator(
+                Decimal('0.00'))])
+    transaction_date = models.DateField(
+        default=get_datetime, validators=[check_created])
     description = models.CharField(
         null=True,
         blank=True,
         max_length=500,
         validators=[
             MaxLengthValidator(
-                500, message='Length description must be less than 500 symbols'),
+                500,
+                message='Length description must be less than 500 symbols'),
         ],
     )
-    from_bank_account_id = models.ForeignKey(BankAccount, on_delete=models.CASCADE, related_name='sent_transactions')
-    to_bank_account_id = models.ForeignKey(BankAccount, on_delete=models.CASCADE, related_name='received_transactions')
+    from_bank_account_id = models.ForeignKey(
+        BankAccount,
+        on_delete=models.CASCADE,
+        related_name='sent_transactions')
+    to_bank_account_id = models.ForeignKey(
+        BankAccount,
+        on_delete=models.CASCADE,
+        related_name='received_transactions')
 
     class Meta:
         db_table = '"banks"."transaction"'
@@ -149,7 +180,11 @@ class Transaction(UUIDMixin):
         verbose_name_plural = _('transactions')
 
     def __str__(self) -> str:
-        return f'Initializer: {self.initializer}, description: {self.description}, from: {self.from_bank_account_id}, to: {self.to_bank_account_id}'
+        return f'Initializer: {
+            self.initializer}, description: {
+            self.description}, from: {
+            self.from_bank_account_id}, to: {
+                self.to_bank_account_id}'
 
 
 class TransactionClient(UUIDMixin):
@@ -172,6 +207,8 @@ class TransactionClient(UUIDMixin):
 
 @receiver(post_delete, sender=BankAccount)
 def delete_bank_client_relation(sender, instance, **kwargs):
-    if not BankAccount.objects.filter(client=instance.client, bank=instance.bank).exists():
+    if not BankAccount.objects.filter(
+            client=instance.client,
+            bank=instance.bank).exists():
         BankClient.objects.filter(
             client=instance.client, bank=instance.bank).delete()

@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Bank, BankClient, Client, BankAccount, Transaction
+
+from .models import Bank, BankAccount, BankClient, Client, Transaction
 
 
 class BankSerializer(serializers.HyperlinkedModelSerializer):
@@ -11,17 +12,16 @@ class BankSerializer(serializers.HyperlinkedModelSerializer):
 class ClientSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Client
-        exclude = ['user'] # TODO: add user to GET responses 
-        
-    
+        exclude = ['user']  # TODO: add user to GET responses
+
     def create(self, validated_data):
-      user = self.context['request'].user
-      client = Client.objects.create(
-         user=user,
-         **validated_data
-      )
-      return client
-    
+        user = self.context['request'].user
+        client = Client.objects.create(
+            user=user,
+            **validated_data
+        )
+        return client
+
 
 class BankAccountSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

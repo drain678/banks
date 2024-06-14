@@ -1,18 +1,21 @@
-from rest_framework import viewsets
-from .models import Bank, BankClient, Client, BankAccount, Transaction
-from .serializers import BankClientSerializer, BankSerializer, ClientSerializer, BankAccountSerializer, TransactionSerializer
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from rest_framework import status
-from django.contrib.auth.decorators import login_required
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404, render, redirect
-from django.views.generic import ListView, DetailView
-from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
-from .forms import ClientForm, ConfirmTransactionForm, InitialTransactionForm, UserRegistrationForm, BankForm, BankAccountForm
-from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+from django.views.generic import DetailView, ListView
+from rest_framework import status, viewsets
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
+
+from .forms import (BankAccountForm, BankForm, ClientForm,
+                    ConfirmTransactionForm, InitialTransactionForm,
+                    UserRegistrationForm)
+from .models import Bank, BankAccount, BankClient, Client, Transaction
+from .serializers import (BankAccountSerializer, BankClientSerializer,
+                          BankSerializer, ClientSerializer,
+                          TransactionSerializer)
 
 
 def is_admin(user):
@@ -43,7 +46,8 @@ def profile_view(request):
 
     banks = Bank.objects.filter(bankclient__client=client) if client else []
     bank_accounts = BankAccount.objects.filter(client=client) if client else []
-    transactions = Transaction.objects.filter(initializer=client) if client else []
+    transactions = Transaction.objects.filter(
+        initializer=client) if client else []
 
     context = {
         'client': client,
@@ -78,7 +82,6 @@ def create_client(request):
     else:
         form = ClientForm()
     return render(request, 'pages/create_client.html', {'form': form})
-
 
 
 def register_view(request):
@@ -139,7 +142,11 @@ def confirm_transaction(request):
     else:
         form = ConfirmTransactionForm()
 
-    return render(request, 'pages/confirm_transaction.html', {'form': form, 'from_account': from_account, 'to_account': to_account})
+    return render(request,
+                  'pages/confirm_transaction.html',
+                  {'form': form,
+                   'from_account': from_account,
+                   'to_account': to_account})
 
 
 @login_required
@@ -162,7 +169,8 @@ def create_transaction(request):
     else:
         form = InitialTransactionForm(user=request.user)
         return render(request, 'pages/create_transaction.html', {'form': form})
-    
+
+
 class UserTransactionListView(ListView):
     model = Transaction
     template_name = 'pages/user_transactions.html'
@@ -275,14 +283,14 @@ class ClientDetailView(DetailView):
 class BankViewSet(viewsets.ModelViewSet):
     queryset = Bank.objects.all()
     serializer_class = BankSerializer
-   
+
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAdminUser]
         return [permission() for permission in permission_classes]
-       
+
 
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all()
@@ -306,7 +314,7 @@ class BankAccountViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-    
+
 
 class BankClientViewSet(viewsets.ModelViewSet):
     queryset = BankClient.objects.all()
@@ -328,9 +336,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             permission_classes = [IsAuthenticated]
         elif self.action == 'create':
-            initializer_id = self.request.data.get('initializer').removeprefix('/api/client/').removesuffix('/')
-            # print(self.request.user.client.id)
-            # print('***********************************')
+            initializer_id = self.request.data.get(
+                'initializer').removeprefix('/api/client/').removesuffix('/')
             id_sender = self.request.user.client.id
             if str(id_sender) == str(initializer_id):
                 permission_classes = [IsAuthenticated]

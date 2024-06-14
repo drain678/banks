@@ -1,48 +1,63 @@
+"""File with admin interface."""
+
 from django.contrib import admin
 
-from .models import (Bank, BankAccount, BankClient, Client, Transaction,
-                     TransactionClient)
+import models
 
 
 class BankAccountInline(admin.TabularInline):
-    model = BankAccount
+    """Inline definition for displaying and editing BankAccount objects."""
+
+    model = models.BankAccount
     extra = 1
 
 
 class BankClientInline(admin.TabularInline):
-    model = BankClient
+    """Inline definition for displaying and editing BankClient objects."""
+
+    model = models.BankClient
     extra = 1
 
 
 class TransactionClientInline(admin.TabularInline):
-    model = TransactionClient
+    """Inline definition for displaying and editing TransactionClient objects."""
+
+    model = models.TransactionClient
     extra = 1
 
 
-@admin.register(Bank)
+@admin.register(models.Bank)
 class BankAdmin(admin.ModelAdmin):
-    model = Bank
+    """Admin interface definition for the Bank model."""
+
+    model = models.Bank
     inlines = (BankClientInline,)
     list_display = ('title', 'foundation_date')
 
 
-@admin.register(Client)
+@admin.register(models.Client)
 class ClientAdmin(admin.ModelAdmin):
-    model = Client
+    """Admin interface definition for the Client model."""
+
+    model = models.Client
     inlines = (TransactionClientInline, BankAccountInline)
     list_display = ('first_name', 'last_name', 'phone')
 
 
-@admin.register(BankAccount)
+@admin.register(models.BankAccount)
 class BankAccountAdmin(admin.ModelAdmin):
+    """Admin interface definition for the BankAccount model."""
+
     list_display = ('id', 'balance', 'bank', 'client')
     search_fields = ('id', 'balance')
-    model = BankAccount
+    model = models.BankAccount
 
 
-@admin.register(Transaction)
+@admin.register(models.Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    model = Transaction
+    """Admin interface definition for the Transaction model."""
+
+    model = models.Transaction
     inline = (TransactionClientInline,)
     list_display = (
         'initializer',
@@ -50,4 +65,5 @@ class TransactionAdmin(admin.ModelAdmin):
         'transaction_date',
         'description',
         'from_bank_account_id',
-        'to_bank_account_id')
+        'to_bank_account_id',
+    )

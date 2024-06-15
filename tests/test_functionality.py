@@ -10,7 +10,6 @@ from django.urls import reverse
 from django.utils import timezone
 
 from banks_app.models import Bank, BankAccount, Client, Transaction
-
 from tests import config
 
 

@@ -9,9 +9,9 @@ from django.views.generic import DetailView, ListView
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
+
+from banks_app import forms, serializers
 from models import Bank, BankAccount, BankClient, Client, Transaction
-from banks_app import forms
-from banks_app import serializers
 
 
 def is_admin(user):

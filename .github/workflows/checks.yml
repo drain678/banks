@@ -1,21 +1,6 @@
 name: Проверка
 on: [push]
 jobs:
-  linter_bot:
-    name: Линтер bot
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Установка Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.10.6
-    - name: Установка зависимостей
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8==3.9.0 wemake-python-styleguide==0.15.3 bandit==1.7.2
-    - name: Flake8
-      run: cd bot && flake8 . 
   linter_backend:
     name: Линтер Backend
     runs-on: ubuntu-latest
@@ -30,7 +15,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8==3.9.0 wemake-python-styleguide==0.15.3 bandit==1.7.2
     - name: Flake8
-      run: cd backend && flake8 . 
+      run: flake8 . 
   tests_backend:
     name: Тесты backend
     runs-on: ubuntu-latest
@@ -44,6 +29,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pytest unittest2
-        pip install -r backend/requirements.txt
+        pip install -r requirements.txt
     - name: pytest
-      run: cd backend && python -m pytest test
+      run: cd tests && python -m pytest test

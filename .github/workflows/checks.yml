@@ -31,4 +31,4 @@ jobs:
         pip install pytest unittest2
         pip install -r requirements.txt
     - name: pytest
-      run: cd tests && python -m pytest test
+      run: python -m pytest tests

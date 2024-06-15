@@ -41,5 +41,5 @@ jobs:
         pip install -r requirements.txt
         chmod +x testing/test.sh
     - name: Test views
-        run: tests.test_functionality
+        run: python -m pytest tests
       # run: ./testing/test.sh testing.test_views

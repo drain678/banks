@@ -31,6 +31,7 @@
     <ul class="list-group">
         {% for bank_account in bank_accounts %}
         <li class="list-group-item mb-3">
+            <p><strong>ID:</strong> {{ bank_account.id }}</p>
             <p><strong>Balance:</strong> {{ bank_account.balance }}</p>
             <p><strong>Bank:</strong> {{ bank_account.bank.title }}</p>
             <div class="mt-2">

@@ -30,7 +30,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:
-        - 5432:5432
+        - 5453:5432
     steps:
     - uses: actions/checkout@v2
     - name: Python installation

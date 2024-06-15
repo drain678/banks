@@ -19,6 +19,7 @@ from django.utils.translation import gettext_lazy as _
 
 from banks_app import config
 
+
 def get_datetime() -> datetime:
     """
     Get the current date and time.

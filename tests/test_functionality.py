@@ -2,7 +2,6 @@
 
 from decimal import Decimal
 
-from tests import config
 from banks_app.models import Bank, BankAccount, Client, Transaction
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import User
@@ -10,6 +9,8 @@ from django.test import Client as TestClient
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+
+from tests import config
 
 
 def extract_data_from_response(response, keys_to_find):

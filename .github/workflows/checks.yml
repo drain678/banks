@@ -24,10 +24,11 @@ jobs:
       postgres:
         image: postgres
         env:
+          POSTGRES_DB: test_db
           POSTGRES_HOST: my-db
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
+          POSTGRES_PORT: 5453
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
         - 5432:5432
     steps:

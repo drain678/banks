@@ -40,6 +40,5 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           pip install -r requirements.txt
-          chmod +x testing/test.sh
       - name: Запуск тестов Django
         run: python runtests.py

@@ -3,7 +3,7 @@
 from django import forms
 from django.contrib.auth.models import User
 
-import config
+from banks_app import config
 
 from .models import Bank, BankAccount, Client, Transaction
 

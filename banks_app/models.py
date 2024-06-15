@@ -8,6 +8,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import uuid4
 
+from banks_app import config
 import django.core.validators as validators
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -16,8 +17,6 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
-import config
 
 
 def get_datetime() -> datetime:

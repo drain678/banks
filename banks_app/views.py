@@ -10,8 +10,8 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-import forms
-import serializers
+from banks_app import forms
+from banks_app import serializers
 
 from .models import Bank, BankAccount, BankClient, Client, Transaction
 
@@ -296,7 +296,7 @@ class UserTransactionListView(ListView):
         Returns:
             django.db.models.query.QuerySet: Filtered queryset of Transaction objects.
         """
-        return Transaction.objects.filter(initializer=self.request.user)
+        return Transaction.objects.filter(initializer=self.request.user.client)
 
 
 class TransactionDetailView(DetailView):

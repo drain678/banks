@@ -2,7 +2,7 @@ name: Проверка
 on: [push]
 jobs:
   linter_backend:
-    name: Линтер Backend
+    name: Линтер
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -16,19 +16,30 @@ jobs:
         pip install flake8==3.9.0 wemake-python-styleguide==0.15.3 bandit==1.7.2
     - name: Flake8
       run: flake8 . 
-  tests_backend:
-    name: Тесты backend
+  container-job:
+    name: Тесты 
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5453
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+        - 5453:5432
     steps:
     - uses: actions/checkout@v2
-    - name: Установка Python
+    - name: Python installation
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10.6
-    - name: Установка зависимостей
+        python-version: 3.11
+    - name: Dependencies installation
       run: |
-        python -m pip install --upgrade pip
-        pip install pytest unittest2
+        python3 -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: pytest
-      run: python -m pytest tests
+        chmod +x testing/test.sh
+    - name: Test views
+        run: testing.test_views
+      # run: ./testing/test.sh testing.test_views

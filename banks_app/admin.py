@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-import models
+from banks_app import models
 
 
 class BankAccountInline(admin.TabularInline):

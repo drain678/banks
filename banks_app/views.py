@@ -10,10 +10,9 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+from .models import Bank, BankAccount, BankClient, Client, Transaction
 from banks_app import forms
 from banks_app import serializers
-
-from .models import Bank, BankAccount, BankClient, Client, Transaction
 
 
 def is_admin(user):

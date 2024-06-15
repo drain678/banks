@@ -9,6 +9,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 from banks_app import config
+
 import django.core.validators as validators
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError

@@ -7,7 +7,7 @@ It includes models for Bank, Client, BankAccount, Transaction and their interrel
 from datetime import datetime
 from decimal import Decimal
 from uuid import uuid4
-from banks_app import config
+
 import django.core.validators as validators
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -17,6 +17,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from banks_app import config
 
 def get_datetime() -> datetime:
     """

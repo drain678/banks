@@ -16,7 +16,7 @@ jobs:
           pip install flake8==3.9.0 wemake-python-styleguide==0.15.3 bandit==1.7.2
       - name: Flake8
         run: flake8 .
-  
+    
   container-job:
     name: Тесты
     runs-on: ubuntu-latest
@@ -25,21 +25,23 @@ jobs:
         image: postgres
         env:
           POSTGRES_HOST: 127.0.0.1
-          POSTGRES_PORT: 5453
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
         ports:
-          - 5453:5432
+        - 5432:5432
     steps:
-      - uses: actions/checkout@v2
-      - name: Установка Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.11
-      - name: Установка зависимостей
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Запуск тестов Django
-        run: pytest tests
+    - uses: actions/checkout@v2
+    - name: Python installation
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Dependencies installation
+      run: |
+        python3 -m pip install --upgrade pip
+        pip install -r requirements.txt
+        chmod +x tests/test.sh
+    - name: Test functionality
+      run: ./tests/test.sh tests.test_functionality
+    - name: Test api
+      run: ./tests/test.sh tests.test_api

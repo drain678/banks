@@ -3,12 +3,13 @@
 import json
 from decimal import Decimal
 
-from banks_app.models import Bank, BankAccount, Client, Transaction
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
+
+from banks_app.models import Bank, BankAccount, Client, Transaction
 
 from tests import config
 

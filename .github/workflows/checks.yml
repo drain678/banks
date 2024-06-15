@@ -24,7 +24,7 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_HOST: my-db
           POSTGRES_PORT: 5432
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test

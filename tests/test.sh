@@ -5,5 +5,5 @@ export PG_PORT=5432
 export PG_USER=test
 export PG_PASSWORD=test
 export PG_DBNAME=postgres
-export SECRET_KEY=h*c#0cq8$lvp_el8l7h(g_n-5^bmt9b#_kci%d05hhh3u-_=j*
+export SECRET_KEY=1grz2o3i$fh+r9mxr_5hn*2#&qf5bf=c6fk^j$0pw3&5q5zzz5
 python3 manage.py test $1
